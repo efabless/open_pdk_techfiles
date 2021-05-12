@@ -36,7 +36,8 @@ jobs:
           mkdir -p /tmp/open_pdks
           curl -L https://github.com/RTimothyEdwards/open_pdks/archive/refs/tags/${{ env.OPENPDKS_TAG }}.tar.gz | tar -xzC /tmp/open_pdks --strip-components=1
           cd /tmp/open_pdks
-          ./configure
+          export PDK_ROOT=/usr/local/pdk
+          ./configure --enable-sky130-pdk=$(PDK_ROOT)/skywater-pdk/libraries --with-sky130-local-path=$(PDK_ROOT)
           make -j$(nproc) && sudo make install
       - name: Compress Requisite Files
         run: |
