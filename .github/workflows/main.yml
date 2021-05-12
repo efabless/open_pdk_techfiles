@@ -36,9 +36,17 @@ jobs:
           mkdir -p /tmp/open_pdks
           curl -L https://github.com/RTimothyEdwards/open_pdks/archive/refs/tags/${{ env.OPENPDKS_TAG }}.tar.gz | tar -xzC /tmp/open_pdks --strip-components=1
           cd /tmp/open_pdks
-          export PDK_ROOT=/usr/local/pdk
-          ./configure --enable-sky130-pdk --with-sky130-local-path=/usr/local/pdk
-          make -j$(nproc) && sudo make install
+          # Only make what we need
+          sed -i 's/\${MAKE} vendor-a//' sky130/Makefile.in; sed -i 's/all-a: prerequisites/all-a:/' sky130/Makefile.in
+          ./configure\
+            --enable-sky130-pdk\
+            --with-sky130-local-path=/usr/local/pdk\
+            --disable-netgen\
+            --disable-irsim\
+            --disable-qflow\
+            --disable-openlane\
+            --disable-klayout
+          make && sudo make install
       - name: Compress Requisite Files
         run: |
           tar -cvf ./sky130A_tech_magic.tar.xz -C /usr/local/pdk/sky130A/libs.tech/magic .
