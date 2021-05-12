@@ -41,6 +41,7 @@ jobs:
           ./configure\
             --enable-sky130-pdk\
             --with-sky130-local-path=/usr/local/pdk\
+            --disable-xschem\
             --disable-netgen\
             --disable-irsim\
             --disable-qflow\
