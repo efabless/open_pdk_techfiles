@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  drc:
+    name: "Build OpenPDKs"
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Get Open_PDKs Tag
+        id: get_version
+        run: |
+         echo "OPENPDKS_TAG=$(ruby -e "print '$GITHUB_REF'.split(/[\/\.]/).select {|v| v == v.to_i.to_s }.join('.')")" >> $GITHUB_ENV
+      - name: Get Repo Owner
+        run: |
+          echo "REPO_OWNER=$(ruby -e "print '${{ github.repository }}'.split('/')[0]")" >> $GITHUB_ENV
+      - name: Get Repo Name
+        run: |
+          echo "REPO_NAME=$(ruby -e "print '${{ github.repository }}'.split('/')[1..].join('/')")" >> $GITHUB_ENV
+      - name: Get Magic Dependencies
+        run: sudo apt-get install tcl-dev tk-dev csh
+      - name: Clone and Install Magic
+        env:
+          MAGIC_TAG: 8.3.160
+        run: |
+          mkdir -p /tmp/magic
+          curl -L https://github.com/RTimothyEdwards/magic/archive/refs/tags/${{ env.MAGIC_TAG }}.tar.gz | tar -xzC /tmp/magic --strip-components=1
+          cd /tmp/magic
+          ./configure
+          make -j$(nproc) && sudo make install
+      - name: Clone and Install Open_PDKs
+        run: |
+          mkdir -p /tmp/open_pdks
+          curl -L https://github.com/RTimothyEdwards/open_pdks/archive/refs/tags/${{ env.OPENPDKS_TAG }}.tar.gz | tar -xzC /tmp/open_pdks --strip-components=1
+          cd /tmp/open_pdks
+          ./configure
+          make -j$(nproc) && sudo make install
+      - name: Compress Requisite Files
+        run: |
+          tar -cvf ./sky130A_tech_magic.tar.xz -C /usr/local/pdk/sky130A/libs.tech/magic .
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        run: |
+          go get -u github.com/tcnksm/ghr
+          export PATH=$PATH:$(go env GOPATH)/bin
+          ghr -u ${{ env.REPO_OWNER }} -r ${{ env.REPO_NAME }} -t ${{ github.token }} ${{ env.OPENPDKS_TAG }} ./sky130A_tech_magic.tar.xz
+
+
