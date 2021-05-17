@@ -1,7 +1,10 @@
 # OpenPDKs Tech Files
-These are builds of the magic tech files for OpenPDKs.
+These are builds of tech files for OpenPDKs. Currently, it only builds and uploads the tech files for Magic, though that may change in the future.
 
 They're used as part of the sky130 PDK's CI.
+
+# Usage
+Push a new tag to this repository corresponding to a tag in https://github.com/RTimothyEdwards/open_pdks. CI will automatically build and upload a corresponding release. 
 
 # Copyright & Licensing
 Copyright 2021 Efabless Corporation
